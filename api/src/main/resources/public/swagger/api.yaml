@@ -9,7 +9,7 @@ tags:
   - name: Authentication
   - name: Users
   - name: Documents
-  - name: Communities
+  - name: Houses
   - name: Amenities
   - name: Houses
   - name: Payments
@@ -483,7 +483,7 @@ paths:
       security:
         - bearerAuth: [ ]
       tags:
-        - Communities
+        - Houses
       description: Create a new community
       operationId: createCommunity
       requestBody:
@@ -510,8 +510,8 @@ paths:
       security:
         - bearerAuth: [ ]
       tags:
-        - Communities
-      description: List all communities which are registered
+        - Houses
+      description: List all houses which are registered
       operationId: listAllCommunity
       parameters:
         - in: query
@@ -534,7 +534,7 @@ paths:
       security:
         - bearerAuth: [ ]
       tags:
-        - Communities
+        - Houses
       description: Get details about the community given a community id
       operationId: listCommunityDetails
       parameters:
@@ -559,7 +559,7 @@ paths:
       security:
         - bearerAuth: [ ]
       tags:
-        - Communities
+        - Houses
       description: Deletion community with given community id
       operationId: deleteCommunity
       parameters:
@@ -578,7 +578,7 @@ paths:
       security:
         - bearerAuth: [ ]
       tags:
-        - Communities
+        - Houses
       description: List all admins of the community given a community id
       operationId: listCommunityAdmins
       parameters:
@@ -608,7 +608,7 @@ paths:
       security:
         - bearerAuth: [ ]
       tags:
-        - Communities
+        - Houses
       description: Add a new admin to the community given a community id
       operationId: addCommunityAdmins
       parameters:
@@ -644,7 +644,7 @@ paths:
       security:
         - bearerAuth: [ ]
       tags:
-        - Communities
+        - Houses
       description: Remove of admin associated with a community
       operationId: removeAdminFromCommunity
       parameters:
@@ -668,7 +668,7 @@ paths:
       security:
         - bearerAuth: [ ]
       tags:
-        - Communities
+        - Houses
       description: List all houses of the community given a community id
       operationId: listCommunityHouses
       parameters:
@@ -696,7 +696,7 @@ paths:
           description: If params are invalid
     post:
       tags:
-        - Communities
+        - Houses
       description: Add a new house to the community given a community id
       operationId: addCommunityHouses
       parameters:
@@ -732,7 +732,7 @@ paths:
       security:
         - bearerAuth: [ ]
       tags:
-        - Communities
+        - Houses
       description: Remove of house from the community given a community id and a house id
       operationId: removeCommunityHouse
       parameters:
@@ -892,7 +892,66 @@ paths:
           description: If house member was removed from house
         '400':
           description: If params are invalid
-
+/houses/{houseId}/rentals:
+    post:
+      tags:
+        - Houses
+      description: Add the duration of stay to house history.
+      operationId: captureStay
+      parameters:
+        - in: path
+          name: houseId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RentalRequest'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/RentalRequest'
+        required: true
+      responses:
+        '201':
+          description: If duration of stay was added to house history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentalResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/RentalResponse'
+        '404':
+          description: If parameters are invalid
+    get:
+      tags:
+        - Houses
+      operationId: listRentalsForHouseId
+      parameters:
+        - in: query
+          name: pageable
+          required: false
+          schema:
+            $ref: '#/components/schemas/Pageable'
+        - in: path
+          name: houseId
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: If history is present
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRentalsResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ListRentalsResponse'
+        '404':
+          description: If params are invalid
   /payments:
     post:
       security:
@@ -1168,7 +1227,7 @@ components:
     GetCommunityDetailsResponse:
       type: object
       required:
-        - communities
+        - houses
       properties:
         communities:
           type: array
@@ -1401,3 +1460,97 @@ components:
           type: string
         password:
           type: string
+    ListRentalsResponse:
+      type: object
+      properties:
+        rentals:
+          type: array
+          items:
+            $ref: '#/components/schemas/RentalDto'
+    RentalResponse:
+      type: object
+      required:
+        - memberId
+        - houseId
+        - stayFromDate
+        - stayToDate
+        - bookingFromDate
+        - bookingToDate
+      properties:
+        memberId:
+          type: string
+        houseId:
+          type: string
+        stayFromDate:
+          type: string
+          format: date-time
+          description: Creation date and time
+          example: "2021-01-30T08:30:00Z"
+        stayToDate:
+          type: string
+          format: date-time
+          description: Creation date and time
+          example: "2021-01-30T08:30:00Z"
+        bookingFromDate:
+          type: string
+          format: date-time
+          description: Creation date and time
+          example: "2021-01-30T08:30:00Z"
+        bookingToDate:
+          type: string
+          format: date-time
+          description: Creation date and time
+          example: "2021-01-30T08:30:00Z"
+    RentalDto:
+      type: object
+      required:
+        - memberId
+        - houseId
+        - stayFromDate
+        - stayToDate
+        - bookingFromDate
+        - bookingToDate
+      properties:
+        memberId:
+          type: string
+        houseId:
+          type: string
+        stayFromDate:
+          type: string
+          format: date-time
+          description: Creation date and time
+          example: "2021-01-30T08:30:00Z"
+        stayToDate:
+          type: string
+          format: date-time
+          description: Creation date and time
+          example: "2021-01-30T08:30:00Z"
+        bookingFromDate:
+          type: string
+          format: date-time
+          description: Creation date and time
+          example: "2021-01-30T08:30:00Z"
+        bookingToDate:
+          type: string
+          format: date-time
+          description: Creation date and time
+          example: "2021-01-30T08:30:00Z"
+    RentalRequest:
+      type: object
+      required:
+        - memberId
+        - bookingFromDate
+        - bookingToDate
+      properties:
+        memberId:
+          type: string
+        bookingFromDate:
+          type: string
+          format: date-time
+          description: Creation date and time
+          example: "2021-01-30T08:30:00Z"
+        bookingToDate:
+          type: string
+          format: date-time
+          description: Creation date and time
+          example: "2021-01-30T08:30:00Z"
