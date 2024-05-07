@@ -18,10 +18,15 @@ package com.myhome.services.springdatajpa;
 
 import com.myhome.domain.CommunityHouse;
 import com.myhome.domain.HouseMember;
+import com.myhome.domain.HouseRental;
 import com.myhome.repositories.CommunityHouseRepository;
 import com.myhome.repositories.HouseMemberDocumentRepository;
 import com.myhome.repositories.HouseMemberRepository;
+import com.myhome.repositories.HouseHistoryRepository;
 import com.myhome.services.HouseService;
+import java.time.OffsetDateTime;
+import java.util.*;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +41,7 @@ import org.springframework.util.CollectionUtils;
 @Service
 public class HouseSDJpaService implements HouseService {
   private final HouseMemberRepository houseMemberRepository;
+    private final HouseHistoryRepository houseHistoryRepository;
   private final HouseMemberDocumentRepository houseMemberDocumentRepository;
   private final CommunityHouseRepository communityHouseRepository;
 
@@ -114,5 +120,32 @@ public class HouseSDJpaService implements HouseService {
     return Optional.ofNullable(
         houseMemberRepository.findAllByCommunityHouse_Community_Admins_UserId(userId, pageable)
     );
+  }
+
+  @Override
+  public Optional<List<HouseRental>> listHouseRentalsForHouseId(String houseId, Pageable pageable) {
+    return houseHistoryRepository.findAllByCommunityHouse_HouseId(houseId, pageable);
+  }
+
+  @Override
+  public Optional<HouseRental> createRentalForHouseId(String houseId, String houseMemberId, OffsetDateTime bookingFromDate, OffsetDateTime bookingToDate) {
+    Optional<CommunityHouse> communityHouseOptional =
+        communityHouseRepository.findByHouseIdWithHouseMembers(houseId);
+    Optional<HouseMember> houseMemberOptional =
+        houseMemberRepository.findByMemberId(houseMemberId);
+    if(communityHouseOptional.isPresent() && houseMemberOptional.isPresent()){
+      return Optional.of(
+          houseHistoryRepository.save(new HouseRental(
+                  houseId,
+                  houseMemberId,
+                  bookingFromDate,
+                  bookingToDate,
+                  null,
+                  null,
+                  communityHouseOptional.get(),
+                  houseMemberOptional.get()
+              ))
+      );
+    }else { return Optional.empty(); }
   }
 }
